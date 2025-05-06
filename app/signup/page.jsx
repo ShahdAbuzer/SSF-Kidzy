@@ -116,12 +116,14 @@ export default function SignUpPage() {
       );
 
       const data = await res.text();
+
       if (!res.ok) {
-        setFormErrors({ general: data });
+        setFormErrors({ general: data.message || "Signup failed." });
       } else {
-        setSuccess(data);
+        setSuccess(data.message || "Signup successful!");
         setTimeout(() => (window.location.href = "/login"), 1500);
       }
+      
     } catch {
       setFormErrors({ general: "Something went wrong." });
     }

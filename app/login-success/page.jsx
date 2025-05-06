@@ -10,10 +10,34 @@ export default function LoginSuccessPage() {
   useEffect(() => {
     const token = searchParams.get("token");
 
-    if (token) {
-      localStorage.setItem("accessToken", token);
+    const fetchStudentInfo = async () => {
+      try {
+        // 🟢 خزّن التوكن أول
+        localStorage.setItem("accessToken", token);
 
-      router.replace("/");
+        // 🧠 جيب بيانات الطالب
+        const res = await fetch("http://localhost:8080/api/students/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        console.log("✅ student info from /me:", data);
+
+        
+        localStorage.setItem("studentId", data.studentId)
+
+        router.replace("/student-dashboard");
+      } catch (error) {
+        console.error("Login error:", error);
+        router.replace("/login");
+      }
+    };
+
+    if (token) {
+      fetchStudentInfo();
     } else {
       router.replace("/login");
     }
