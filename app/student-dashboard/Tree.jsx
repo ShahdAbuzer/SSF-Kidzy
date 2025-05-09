@@ -5,11 +5,11 @@ export default function Tree() {
     <Image
       src="/images/tree.png"
       alt="tree"
-      width={250}
-      height={250}
+      width={300}
+      height={300}
       style={{
-        position: "absolute",
-        bottom: "250px",
+        position: "fixed",
+        bottom: "130px",
         left: "250px",
         zIndex: 2,
       }}

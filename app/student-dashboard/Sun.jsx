@@ -5,12 +5,12 @@ export default function Sun() {
     <Image
       src="/images/sun.png"
       alt="sun"
-      width={200}
-      height={200}
+      width={250}
+      height={250}
       style={{
-        position: "absolute",
-        top: 150,
-        left: "800px",
+        position: "fixed",
+        top: 3,
+        left: "1000px",
         zIndex: 4,
       }}
     />

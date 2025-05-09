@@ -19,13 +19,13 @@ export default function House() {
     <Image
       src={open ? "/images/house-open.png" : "/images/house.png"} // ✨ بدل الصورة
       alt="house"
-      width={300}
-      height={300}
+      width={400}
+      height={400}
       onClick={handleClick}
       style={{
-        position: "absolute",
-        bottom: "320px",
-        left: "610px",
+        position: "fixed",
+        bottom: "150px",
+        left: "570px",
         zIndex: 3,
         cursor: "pointer",
         transition: "transform 0.3s ease-in-out",

@@ -2,15 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  TextField,
+  InputAdornment,
+  MenuItem,
+  Grid,
+  IconButton,
+} from "@mui/material";
+import { motion } from "framer-motion";
+import SearchIcon from "@mui/icons-material/Search";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState([]);
   const [error, setError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
   const router = useRouter();
 
   useEffect(() => {
     fetch("http://localhost:8080/api/assignments", {
-      method: "GET",
       credentials: "include",
     })
       .then((res) => {
@@ -31,23 +49,248 @@ export default function AssignmentsPage() {
     router.push(`/assignment-submission?assignmentId=${assignmentId}`);
   };
 
-  return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Assignments</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {assignments.length === 0 && !error && <p>Loading...</p>}
+  const filtered = assignments
+    .filter((a) =>
+      a.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) =>
+      sortOrder === "asc"
+        ? a.title.localeCompare(b.title)
+        : b.title.localeCompare(a.title)
+    );
 
-      {assignments.map((a) => (
-        <div key={a.id} style={{ marginBottom: "1rem" }}>
-          <p><strong>Title:</strong> {a.title}</p>
-          <p><strong>Description:</strong> {a.description}</p>
-          <p><strong>Due Date:</strong> {a.dueDate ?? "No due date"}</p>
-          <button onClick={() => handleSubmissionClick(a.id)}>
-            Submit This Assignment
-          </button>
-          <hr />
-        </div>
-      ))}
-    </main>
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentItems = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const emojiList = ["📚", "📝", "📎", "🔖", "🧸", "🧠", "🌼", "🍀"];
+
+  return (
+    <Box
+      sx={{
+        height: "100vh",
+        overflowY: "auto",
+        background: "#FFF9E5",
+      }}
+    >
+      <Box
+        sx={{
+          minHeight: "100%",
+          fontFamily: "'Jaldi', sans-serif",
+          py: 6,
+          px: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <img
+          src="/images/Bird.svg"
+          alt="Bear"
+          style={{
+            position: "fixed",
+            right: 0,
+            bottom: 0,
+            width: "300px",
+            height: "auto",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        />
+
+        <Typography
+          variant="h3"
+          color="#2E6F40"
+          fontWeight="bold"
+          mb={4}
+          textAlign="center"
+        >
+          All Assignments
+        </Typography>
+
+        {/* Search & Sort */}
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: 2,
+            mb: 4,
+          }}
+        >
+          <TextField
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search title..."
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "#6a994e" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: 2,
+              width: 250,
+              "& .MuiOutlinedInput-root": { borderRadius: 3 },
+            }}
+          />
+
+          <TextField
+            select
+            value={sortOrder}
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+              setCurrentPage(1);
+            }}
+            label="Sort by title"
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: 2,
+              width: 200,
+              "& .MuiOutlinedInput-root": { borderRadius: 3 },
+            }}
+          >
+            <MenuItem value="asc">A → Z</MenuItem>
+            <MenuItem value="desc">Z → A</MenuItem>
+          </TextField>
+        </Box>
+
+        {error ? (
+          <Typography color="red">{error}</Typography>
+        ) : filtered.length === 0 ? (
+          <Typography color="#555" textAlign="center" fontSize="1.2rem">
+            No assignments match your search.
+          </Typography>
+        ) : (
+          <>
+            <Box sx={{ width: "100%", maxWidth: 900, mx: "auto", mb: 4 }}>
+              <Grid container spacing={3} justifyContent="center">
+                {currentItems.map((a, idx) => (
+                  <Grid item xs={6} key={a.id}>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: idx * 0.1 }}
+                    >
+                      <Paper
+                        elevation={3}
+                        sx={{
+                          p: 3,
+                          borderRadius: 5,
+                          backgroundColor: "#faedcd",
+                          height: "260px",
+                          maxWidth: "400px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          textAlign: "center",
+                          mx: "auto",
+                        }}
+                      >
+                        <Box sx={{ fontSize: "2.8rem", mb: 1 }}>
+                          {emojiList[idx % emojiList.length]}
+                        </Box>
+                        <Typography
+                          variant="h6"
+                          fontWeight="bold"
+                          color="#256029"
+                          sx={{ wordBreak: "break-word", mb: 1 }}
+                        >
+                          {a.title}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="#4E5D42"
+                          sx={{
+                            wordBreak: "break-word",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {a.description}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          color="#4E5D42"
+                          mt={1}
+                          fontStyle="italic"
+                        >
+                          Due: {a.dueDate || "No due date"}
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          sx={{
+                            backgroundColor: "#adc178",
+                            color: "#4E5D42",
+                            fontWeight: "bold",
+                            fontSize: "1rem",
+                            py: 1,
+                            px: 4,
+                            borderRadius: "30px",
+                            mt: 1,
+                            "&:hover": {
+                              backgroundColor: "#6a994e",
+                            },
+                          }}
+                          onClick={() => handleSubmissionClick(a.id)}
+                        >
+                          Submit
+                        </Button>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+
+            {/* Pagination */}
+            <Box
+              sx={{
+                mt: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                justifyContent: "center",
+              }}
+            >
+              <IconButton
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                sx={{ color: "#4E5D42" }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography fontWeight="bold" color="#4E5D42">
+                Page {currentPage} of {totalPages}
+              </Typography>
+              <IconButton
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                sx={{ color: "#4E5D42" }}
+              >
+                <ArrowForwardIcon />
+              </IconButton>
+            </Box>
+          </>
+        )}
+      </Box>
+    </Box>
   );
 }

@@ -1,15 +1,13 @@
+// app/(auth)/LoginForm.jsx
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  IconButton,
-  InputAdornment,
-  CircularProgress,
-  Paper,
+  Box, Typography, TextField, Button, IconButton,
+  InputAdornment, CircularProgress, Paper,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import Visibility from "@mui/icons-material/Visibility";
@@ -17,11 +15,21 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Image from "next/image";
 
 export default function LoginForm() {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [showPw,   setShowPw]   = useState(false);
+  const [error,    setError]    = useState("");
+  const [loading,  setLoading]  = useState(false);
+
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
+  const ROLE_ENDPOINTS = [
+    { role: "STUDENT",    url: `${API}/api/students/me`,         dashboard: "/student-dashboard" },
+    { role: "INSTRUCTOR", url: `${API}/api/instructors/current`, dashboard: "/instructor-dashboard" },
+    { role: "ADMIN",      url: `${API}/api/admin/current`,       dashboard: "/admin-dashboard" },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,31 +37,49 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      /* 1️⃣ طلب تسجيل الدخول */
+      const loginRes = await fetch(`${API}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",              // يستلم كوكي الجلسة
+        body: JSON.stringify({ username, password }),
+      });
 
-      if (!res.ok) {
-        const { message } = await res.json();
+      if (!loginRes.ok) {
+        const { message } = await loginRes.json();
         setError(message || "Invalid credentials");
-      } else {
-        window.location.href = "/";
+        return;
       }
-    } catch {
+
+      /* 2️⃣ اكتشاف الدور */
+      for (const ep of ROLE_ENDPOINTS) {
+        const res = await fetch(ep.url, { credentials: "include" });
+
+        if (res.ok) {
+          const data = await res.json();
+
+          Cookies.set("currentUserId",   String(data.id), { path: "/", sameSite: "lax" });
+          Cookies.set("currentUserName", data.name ?? "", { path: "/", sameSite: "lax" });
+          Cookies.set("currentUserRole", ep.role,         { path: "/", sameSite: "lax" });
+
+          sessionStorage.setItem("currentUser", JSON.stringify(data));
+
+          router.replace(ep.dashboard);
+          return;
+        }
+      }
+
+      setError("User role not recognized.");
+    } catch (err) {
+      console.error(err);
       setError("Network error");
     } finally {
-      setLoading(false);
+      setLoading(false);   // يتنفّذ دايمًا
     }
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = `${API}/oauth2/authorization/google`;
   };
 
   return (
@@ -93,14 +119,7 @@ export default function LoginForm() {
           style={{ marginBottom: "0.5rem" }}
         />
 
-        <Typography
-          variant="body1"
-          sx={{
-            color: "#F5A623",
-            fontWeight: "bold",
-            mb: 2,
-          }}
-        >
+        <Typography variant="body1" sx={{ color: "#F5A623", fontWeight: "bold", mb: 2 }}>
           Inspiring little minds through playful learning
         </Typography>
 
@@ -110,23 +129,15 @@ export default function LoginForm() {
           </Typography>
         )}
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
-        >
+        <Box component="form" onSubmit={handleSubmit}
+             sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           <TextField
             label="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required
-            fullWidth
+            required fullWidth
             InputProps={{
-              sx: {
-                backgroundColor: "#FBFCED",
-                borderRadius: 2,
-                "& fieldset": { borderColor: "#DADADA" },
-              },
+              sx: { backgroundColor: "#FBFCED", borderRadius: 2, "& fieldset": { borderColor: "#DADADA" } },
             }}
           />
 
@@ -135,21 +146,12 @@ export default function LoginForm() {
             type={showPw ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            fullWidth
+            required fullWidth
             InputProps={{
-              sx: {
-                backgroundColor: "#FBFCED",
-                borderRadius: 2,
-                "& fieldset": { borderColor: "#DADADA" },
-              },
+              sx: { backgroundColor: "#FBFCED", borderRadius: 2, "& fieldset": { borderColor: "#DADADA" } },
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPw(!showPw)}
-                    edge="end"
-                    size="small"
-                  >
+                  <IconButton onClick={() => setShowPw(!showPw)} edge="end" size="small">
                     {showPw ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -170,16 +172,13 @@ export default function LoginForm() {
               fontWeight: "bold",
               borderRadius: 2,
               py: 1.3,
-              "&:hover": {
-                backgroundColor: "#E49B20",
-              },
+              "&:hover": { backgroundColor: "#E49B20" },
             }}
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
           </Button>
         </Box>
 
-        {/* Google Login Button */}
         <Button
           onClick={handleGoogleLogin}
           fullWidth
@@ -193,33 +192,16 @@ export default function LoginForm() {
             py: 1.2,
             color: "#333",
             backgroundColor: "#fff",
-            "&:hover": {
-              backgroundColor: "#f5f5f5",
-              borderColor: "#bbb",
-            },
+            "&:hover": { backgroundColor: "#f5f5f5", borderColor: "#bbb" },
           }}
-          startIcon={
-            <img
-              src="/icons/google.svg"
-              alt="Google"
-              style={{ width: 20, height: 20 }}
-            />
-          }
+          startIcon={<img src="/icons/google.svg" alt="Google" style={{ width: 20, height: 20 }} />}
         >
           Continue with Google
         </Button>
 
-        {/* Sign Up Link */}
         <Typography variant="body2" sx={{ mt: 2 }}>
           Don’t have an account?{" "}
-          <a
-            href="/signup"
-            style={{
-              color: "#F5A623",
-              fontWeight: "bold",
-              textDecoration: "none",
-            }}
-          >
+          <a href="/signup" style={{ color: "#F5A623", fontWeight: "bold", textDecoration: "none" }}>
             Sign Up
           </a>
         </Typography>

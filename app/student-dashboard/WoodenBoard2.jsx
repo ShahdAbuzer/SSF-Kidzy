@@ -5,12 +5,12 @@ export default function WoodenBoard2() {
     <Image
       src="/images/wooden-board.png"
       alt="wooden board"
-      width={100}
-      height={100}
+      width={120}
+      height={120}
       style={{
-        position: "absolute",
-        bottom: "220px",
-        left: "850px",
+        position: "fixed",
+        bottom: "80px",
+        left: "850px", // بدّل right بـ left وثبت مكانه حسب الخلفية
         zIndex: 3,
       }}
     />
