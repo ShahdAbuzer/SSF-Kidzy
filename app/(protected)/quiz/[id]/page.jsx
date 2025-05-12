@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Cookies from "js-cookie";
 import useSound from "use-sound";
 import confetti from "canvas-confetti";
@@ -15,19 +15,23 @@ import {
   Button,
   LinearProgress,
 } from "@mui/material";
+import LoaderWaves from "../../components/Loader";
 
 const API = "http://localhost:8080/api";
 const emojis = ["🦉", "🧸", "🌈", "🎲", "🚀", "🐸", "📚", "🧠", "🎯", "🍎"];
 
 export default function QuizPage() {
   const { id } = useParams();
-  const router = useRouter();
   const [quiz, setQuiz] = useState(null);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
-  const [message, setMessage] = useState("");
   const [progress, setProgress] = useState(0);
-
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wrongAnswers, setWrongAnswers] = useState([]);
+  const [showResult, setShowResult] = useState(false);
+  const [totalScore, setTotalScore] = useState(0);
+  const [totalPossible, setTotalPossible] = useState(0);
   const [playSuccess] = useSound("/sounds/success.mp3", { volume: 0.5 });
 
   useEffect(() => {
@@ -43,22 +47,22 @@ export default function QuizPage() {
 
         if (!quizData.questionIds || quizData.questionIds.length === 0) {
           setQuizQuestions([]);
+          setLoading(false);
           return;
         }
 
-        const questionsRes = await fetch(`${API}/questions`, {
+        const questionsRes = await fetch(`${API}/questions/quiz/${id}`, {
           credentials: "include",
         });
         if (!questionsRes.ok) throw new Error("Failed to load questions");
 
         const allQuestions = await questionsRes.json();
-        const filtered = allQuestions.filter((q) =>
-          quizData.questionIds.includes(q.id)
-        );
-        setQuizQuestions(filtered);
+        setQuizQuestions(allQuestions);
+        setLoading(false);
       } catch (err) {
         console.error(err);
         setQuizQuestions([]);
+        setLoading(false);
       }
     };
 
@@ -90,19 +94,28 @@ export default function QuizPage() {
 
   const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
       const studentId = Number(Cookies.get("currentUserId") || 0);
-      if (!quiz || !quiz.assessmentId || studentId === 0) {
-        setMessage("❌ Missing quiz or student info");
-        return;
-      }
+      if (!quiz || !quiz.assessmentId || studentId === 0) return;
 
       const unanswered = quizQuestions.filter(
         (q) => !answers[q.id] || answers[q.id].length === 0
       );
-      if (unanswered.length > 0) {
-        setMessage("❌ Please answer all questions before submitting.");
-        return;
-      }
+      if (unanswered.length > 0) return;
+
+      let score = 0;
+      let max = 0;
+      const wrong = [];
+
+      quizQuestions.forEach((q) => {
+        const userAnswer = answers[q.id]?.[0];
+        if (userAnswer === q.correctAnswer) {
+          score += q.points;
+        } else {
+          wrong.push(q.id);
+        }
+        max += q.points;
+      });
 
       const payload = {
         assessmentId: quiz.assessmentId,
@@ -122,16 +135,17 @@ export default function QuizPage() {
 
       if (!res.ok) throw new Error("Failed to submit quiz");
 
-      setMessage("✅ Answers submitted successfully!");
-      playSuccess(); // 🔊 صوت النجاح
-      confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } }); // ✨ نجوم
+      setWrongAnswers(wrong);
+      setTotalScore(score);
+      setTotalPossible(max);
+      playSuccess();
+      confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
 
-      setTimeout(() => {
-        router.push("/student-dashboard");
-      }, 1500);
+      setShowResult(true);
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error submitting quiz");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,6 +156,88 @@ export default function QuizPage() {
     return "#E0E0E0";
   };
 
+  if (isSubmitting) {
+    return (
+      <>
+        <style jsx>{`
+          .loader {
+            display: inline-flex;
+            gap: 10px;
+          }
+          .loader:before,
+          .loader:after {
+            content: "";
+            height: 20px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+              linear-gradient(#222 0 0) top/100% 40% no-repeat,
+              radial-gradient(farthest-side, #000 95%, #0000) 50%/8px 8px
+                no-repeat #fff;
+            animation: l7 1.5s infinite alternate ease-in;
+          }
+          @keyframes l7 {
+            0%,
+            70% {
+              background-size: 100% 40%, 8px 8px;
+            }
+            85% {
+              background-size: 100% 120%, 8px 8px;
+            }
+            100% {
+              background-size: 100% 40%, 8px 8px;
+            }
+          }
+        `}</style>
+
+        <Box
+          height="100vh"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          alignItems="center"
+          sx={{ backgroundColor: "#FFFDF2", fontFamily: "'Jaldi', sans-serif" }}
+        >
+          <Typography variant="h4" fontWeight="bold" color="#7F9E72" mb={3}>
+            🧠 Grading your quiz...
+          </Typography>
+          <LoaderWaves />
+
+          <Box className="loader" />
+        </Box>
+      </>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Box
+        height="100vh"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        sx={{ backgroundColor: "#FFFDF2", fontFamily: "'Jaldi', sans-serif" }}
+      >
+        <Typography variant="h4" fontWeight="bold" color="#7F9E72" mb={2}>
+          Loading your quiz... 🎉
+        </Typography>
+        <LinearProgress
+          variant="indeterminate"
+          sx={{
+            width: "60%",
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: "#E5E5E5",
+            "& .MuiLinearProgress-bar": {
+              backgroundColor: "#A3B18A",
+            },
+          }}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -150,6 +246,7 @@ export default function QuizPage() {
         overflowY: "auto",
         fontFamily: "'Jaldi', sans-serif",
         p: { xs: 2, md: 6 },
+        position: "relative",
       }}
     >
       <Typography
@@ -193,7 +290,9 @@ export default function QuizPage() {
             p: 4,
             mb: 4,
             borderRadius: 8,
-            backgroundColor: "#FFF9E0",
+            backgroundColor: wrongAnswers.includes(q.id)
+              ? "#FFEAEA"
+              : "#FFF9E0",
             boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
             transition: "0.2s",
             "&:hover": { transform: "scale(1.01)" },
@@ -265,7 +364,7 @@ export default function QuizPage() {
         </Paper>
       ))}
 
-      {quizQuestions.length > 0 && (
+      {quizQuestions.length > 0 && !showResult && (
         <Box textAlign="center" mt={5}>
           <Button
             variant="contained"
@@ -286,16 +385,46 @@ export default function QuizPage() {
         </Box>
       )}
 
-      {message && (
-        <Typography
-          variant="body1"
-          mt={3}
-          textAlign="center"
-          fontWeight="bold"
-          color={message.startsWith("✅") ? "green" : "error"}
+      {showResult && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          width="100%"
+          height="100%"
+          bgcolor="rgba(0,0,0,0.5)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          zIndex={9999}
         >
-          {message}
-        </Typography>
+          <Box
+            bgcolor="#FFF9E0"
+            p={4}
+            borderRadius={6}
+            textAlign="center"
+            boxShadow="0 8px 20px rgba(0,0,0,0.2)"
+          >
+            <Typography variant="h4" fontWeight="bold" color="#4E5D42">
+              🎉 You scored {totalScore} out of {totalPossible}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => setShowResult(false)}
+              sx={{
+                mt: 3,
+                backgroundColor: "#A3B18A",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: 4,
+                px: 4,
+                "&:hover": { backgroundColor: "#8DA87B" },
+              }}
+            >
+              OK
+            </Button>
+          </Box>
+        </Box>
       )}
     </Box>
   );

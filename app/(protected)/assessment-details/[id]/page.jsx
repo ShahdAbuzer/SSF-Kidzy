@@ -1,4 +1,3 @@
-// kidzy-frontend/kidzy/app/(protected)/assessment-details/[id]/page.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,10 +13,12 @@ import {
   InputAdornment,
   MenuItem,
   IconButton,
+  Skeleton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import LoaderWaves from "../../components/Loader";
 
 const API = "http://localhost:8080/api";
 const emojiList = [
@@ -43,9 +44,9 @@ export default function AssessmentDetailsPage() {
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [page, setPage] = useState(1);
+  const [loadingQuizzes, setLoadingQuizzes] = useState(true);
   const perPage = 4;
 
-  // fetch assessment
   useEffect(() => {
     fetch(`${API}/assessments/${id}`, { credentials: "include" })
       .then((r) => {
@@ -56,8 +57,8 @@ export default function AssessmentDetailsPage() {
       .catch(console.error);
   }, [id]);
 
-  // fetch all quizzes, then filter
   useEffect(() => {
+    setLoadingQuizzes(true);
     fetch(`${API}/quizzes`, { credentials: "include" })
       .then((r) => r.json())
       .then((list) => {
@@ -66,10 +67,10 @@ export default function AssessmentDetailsPage() {
         setFiltered(related);
         setPage(1);
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setLoadingQuizzes(false));
   }, [id]);
 
-  // search + sort
   useEffect(() => {
     let tmp = quizzes.filter((q) =>
       (`quiz ${q.id} (${q.questionIds?.length} Qs)`)
@@ -88,7 +89,26 @@ export default function AssessmentDetailsPage() {
   const totalPages = Math.ceil(filtered.length / perPage);
   const pageItems = filtered.slice((page - 1) * perPage, page * perPage);
 
-  if (!assessment) return <Typography>Loading…</Typography>;
+  if (!assessment) {
+    return (
+      <Box
+        sx={{
+          backgroundColor: "#FFFDF3",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+          p: 4,
+        }}
+      >
+        <LoaderWaves />
+        <Typography mt={2} fontWeight="bold" color="#e0a267">
+          Loading assessment...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -154,44 +174,79 @@ export default function AssessmentDetailsPage() {
       </Grid>
 
       <Grid container spacing={4} justifyContent="center">
-        {pageItems.map((q) => (
-          <Grid item xs={12} sm={6} key={q.id}>
-            <Paper
-              elevation={4}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                p: 3,
-                borderRadius: 4,
-                backgroundColor: "#FFF9E0",
-                gap: 2,
-              }}
-            >
-              <Typography fontSize="2.5rem">
-                {emojiList[q.id % emojiList.length]}
-              </Typography>
-              <Box flexGrow={1}>
-                <Typography variant="h6">Quiz #{q.id}</Typography>
-                <Typography>
-                  Questions: {q.questionIds?.length || 0}
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(
-                    100,
-                    (q.questionIds?.length || 0) * (100 / perPage)
-                  )}
-                />
-              </Box>
-              <Button
-                variant="contained"
-                onClick={() => router.push(`/quiz/${q.id}`)}
-              >
-                Start
-              </Button>
-            </Paper>
-          </Grid>
-        ))}
+        {loadingQuizzes
+          ? [...Array(4)].map((_, idx) => (
+              <Grid item xs={12} sm={6} key={idx}>
+                <Paper
+                  elevation={2}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    p: 3,
+                    borderRadius: 4,
+                    backgroundColor: "#FFF9E0",
+                    gap: 2,
+                  }}
+                >
+                  <Typography
+                    fontSize="2.5rem"
+                    color="rgba(0,0,0,0.1)"
+                    sx={{ userSelect: "none" }}
+                  >
+                    {emojiList[idx % emojiList.length]}
+                  </Typography>
+                  <Box flexGrow={1}>
+                    <Skeleton variant="text" width="60%" height={32} />
+                    <Skeleton variant="text" width="40%" height={24} />
+                    <Skeleton variant="rectangular" height={8} sx={{ my: 1 }} />
+                  </Box>
+                  <Skeleton
+                    variant="rounded"
+                    width={80}
+                    height={36}
+                    sx={{ borderRadius: "20px" }}
+                  />
+                </Paper>
+              </Grid>
+            ))
+          : pageItems.map((q) => (
+              <Grid item xs={12} sm={6} key={q.id}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    p: 3,
+                    borderRadius: 4,
+                    backgroundColor: "#FFF9E0",
+                    gap: 2,
+                  }}
+                >
+                  <Typography fontSize="2.5rem">
+                    {emojiList[q.id % emojiList.length]}
+                  </Typography>
+                  <Box flexGrow={1}>
+                    <Typography variant="h6">Quiz #{q.id}</Typography>
+                    <Typography>
+                      Questions: {q.questionIds?.length || 0}
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(
+                        100,
+                        (q.questionIds?.length || 0) * (100 / perPage)
+                      )}
+                    />
+                  </Box>
+                  <Button
+                    variant="contained"
+                    onClick={() => router.push(`/quiz/${q.id}`)}
+                  >
+                    Start
+                  </Button>
+                </Paper>
+              </Grid>
+            ))}
       </Grid>
 
       <Box mt={4} display="flex" justifyContent="center" alignItems="center">

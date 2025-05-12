@@ -51,6 +51,7 @@ export default function InstructorDashboard() {
       }
     }
 
+
     const fetchAssignments = async () => {
       try {
         const res = await fetch("http://localhost:8080/api/assignments", {
@@ -163,7 +164,8 @@ export default function InstructorDashboard() {
           </Paper>
 
           <Button
-            onClick={handleLogout}
+                    onClick={handleLogout}
+
             variant="outlined"
             fullWidth
             startIcon={<LogoutIcon />}
@@ -184,6 +186,7 @@ export default function InstructorDashboard() {
                 borderColor: palette.primary,
               },
             }}
+
           >
             Logout
           </Button>

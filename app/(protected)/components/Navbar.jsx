@@ -64,6 +64,7 @@ export default function Navbar() {
       <Box sx={{ cursor: "pointer" }}>
         <Avatar
           src="/profile.png"
+          onClick={() => router.push("/profile")}
           alt="Profile"
           sx={{
             width: 44,

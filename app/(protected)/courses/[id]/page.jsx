@@ -41,7 +41,7 @@ import AddContentForm from "../../components/AddContentForm";
 import Cookies from "js-cookie";
 
 const palette = {
-  primary: "#38761d",// Green
+  primary: "#38761d", // Green
   accent: "#ea9127",
   background: "#f9f9fc",
   textPrimary: "#1a223f",
@@ -71,8 +71,12 @@ export default function CourseDetailsPage() {
     const fetchData = async () => {
       try {
         const [courseRes, contentsRes, studentsRes] = await Promise.all([
-          fetch(`http://localhost:8080/api/course/${id}`, { credentials: "include" }),
-          fetch(`http://localhost:8080/api/content/course/${id}`, { credentials: "include" }),
+          fetch(`http://localhost:8080/api/course/${id}`, {
+            credentials: "include",
+          }),
+          fetch(`http://localhost:8080/api/content/course/${id}`, {
+            credentials: "include",
+          }),
           fetch("http://localhost:8080/api/takes", { credentials: "include" }),
         ]);
 
@@ -86,7 +90,11 @@ export default function CourseDetailsPage() {
 
         setCourse(courseData);
         setContents(contentsData?._embedded?.contentDTOList || []);
-        setStudents((studentsData?._embedded?.takesDTOList || []).filter((s) => s.courseId == id));
+        setStudents(
+          (studentsData?._embedded?.takesDTOList || []).filter(
+            (s) => s.courseId == id
+          )
+        );
       } catch (err) {
         setError(err.message);
       } finally {
@@ -118,12 +126,15 @@ export default function CourseDetailsPage() {
   }, [activeTab]);
 
   const handleDownload = async (id) => {
-    const res = await fetch(`http://localhost:8080/api/content/download/${id}`, {
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${Cookies.get("accessToken")}`,
-      },
-    });
+    const res = await fetch(
+      `http://localhost:8080/api/content/download/${id}`,
+      {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${Cookies.get("accessToken")}`,
+        },
+      }
+    );
     const blob = await res.blob();
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -132,7 +143,15 @@ export default function CourseDetailsPage() {
   };
 
   return (
-    <Box sx={{ height: "100vh", overflowY: "auto", background: palette.background, p: { xs: 1, sm: 3 } }}>
+    
+    <Box
+      sx={{
+        height: "100vh",
+        overflowY: "auto",
+        background: palette.background,
+        p: { xs: 1, sm: 3 },
+      }}
+    >
       <Grid container justifyContent="center">
         <Grid item xs={12} md={10} lg={8}>
           <Paper
@@ -147,7 +166,11 @@ export default function CourseDetailsPage() {
           >
             <Box display="flex" alignItems="center" gap={2} mb={3}>
               <SchoolIcon sx={{ fontSize: 34, color: palette.primary }} />
-              <Typography variant="h4" fontWeight={800} color={palette.textPrimary}>
+              <Typography
+                variant="h4"
+                fontWeight={800}
+                color={palette.textPrimary}
+              >
                 Course Details
               </Typography>
             </Box>
@@ -176,11 +199,36 @@ export default function CourseDetailsPage() {
                   },
                 }}
               >
-                <Tab label="Assessments" value="assessments" icon={<AssignmentIcon />} iconPosition="start" />
-                <Tab label="Resources" value="resources" icon={<VideoLibraryIcon />} iconPosition="start" />
-                <Tab label="Students" value="students" icon={<PeopleIcon />} iconPosition="start" />
-                <Tab label="Assignments" value="assignments" icon={<AssignmentIcon />} iconPosition="start" />
-                <Tab label="Upload" value="uploadContent" icon={<AddIcon />} iconPosition="start" />
+                <Tab
+                  label="Assessments"
+                  value="assessments"
+                  icon={<AssignmentIcon />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Resources"
+                  value="resources"
+                  icon={<VideoLibraryIcon />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Students"
+                  value="students"
+                  icon={<PeopleIcon />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Assignments"
+                  value="assignments"
+                  icon={<AssignmentIcon />}
+                  iconPosition="start"
+                />
+                <Tab
+                  label="Upload"
+                  value="uploadContent"
+                  icon={<AddIcon />}
+                  iconPosition="start"
+                />
               </Tabs>
             </Box>
 
@@ -189,15 +237,25 @@ export default function CourseDetailsPage() {
               <Collapse in={activeTab === "assessments"}>
                 <Box>
                   {loadingCourse ? (
-                    <Box textAlign="center" mt={4}><CircularProgress  sx={{ color: "#38761d" }} /></Box>
+                    <Box textAlign="center" mt={4}>
+                      <CircularProgress sx={{ color: "#38761d" }} />
+                    </Box>
                   ) : error ? (
                     <Alert severity="error">{error}</Alert>
                   ) : (
                     <>
-                      <CourseDetails loading={loadingCourse} error={error} course={course} />
-                      {course && <CourseAssessments courseId={course.courseId} />}
+                      <CourseDetails
+                        loading={loadingCourse}
+                        error={error}
+                        course={course}
+                      />
+                      {course && (
+                        <CourseAssessments courseId={course.courseId} />
+                      )}
                       <Button
-                        onClick={() => setShowAddAssessmentForm(!showAddAssessmentForm)}
+                        onClick={() =>
+                          setShowAddAssessmentForm(!showAddAssessmentForm)
+                        }
                         sx={{
                           mt: 2,
                           background: palette.primary,
@@ -208,7 +266,9 @@ export default function CourseDetailsPage() {
                         }}
                         startIcon={<AddIcon />}
                       >
-                        {showAddAssessmentForm ? "Cancel Add" : "Add Assessment"}
+                        {showAddAssessmentForm
+                          ? "Cancel Add"
+                          : "Add Assessment"}
                       </Button>
                       <Collapse in={showAddAssessmentForm}>
                         <AddAssessmentForm
@@ -227,25 +287,94 @@ export default function CourseDetailsPage() {
               {/* Resources Tab */}
               <Collapse in={activeTab === "resources"}>
                 {loadingCourse ? (
-                  <Box textAlign="center" mt={4}><CircularProgress  sx={{ color: "#38761d" }}/></Box>
+                  <Box textAlign="center" mt={4}>
+                    <CircularProgress sx={{ color: "#38761d" }} />
+                  </Box>
                 ) : (
                   <List>
                     {contents.map((c, i) => (
                       <ListItem key={i} divider>
                         <ListItemText
-                          primary={<Typography fontWeight={600} color={palette.textPrimary}>{c.type} - {c.filePath?.split("/").pop()}</Typography>}
+                          primary={
+                            <Typography
+                              fontWeight={600}
+                              color={palette.textPrimary}
+                            >
+                              {c.type} -{" "}
+                              {c.filePath?.split("/").pop() || "No file"}
+                            </Typography>
+                          }
                           secondary={
                             c.type === "VIDEO" ? (
-                              <a href={c.resourceUrl} target="_blank" rel="noopener noreferrer">Watch Video</a>
+                              <a
+                                href={c.resourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Watch Video
+                              </a>
                             ) : (
-                              <Button size="small" variant="outlined" color="success" onClick={() => handleDownload(c.id)}>Download</Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="success"
+                                onClick={() => {
+                                  console.log(c.id)
+                                  if (!c.id) {
+                                    alert("❌ Invalid file ID");
+                                    return;
+                                  }
+
+                                  fetch(
+                                    `http://localhost:8080/api/content/download/${c.id}`,
+                                    {
+                                      credentials: "include",
+                                      headers: {
+                                        Authorization: `Bearer ${Cookies.get(
+                                          "accessToken"
+                                        )}`,
+                                      },
+                                    }
+                                  )
+                                    .then((res) => {
+                                      if (!res.ok) {
+                                        return res.text().then((text) => {
+                                          throw new Error(text);
+                                        });
+                                      }
+                                      return res.blob();
+                                    })
+                                    .then((blob) => {
+                                      const a = document.createElement("a");
+                                      a.href = URL.createObjectURL(blob);
+                                      a.download =
+                                        c.filePath?.split("/").pop() ||
+                                        `resource-${c.id}`;
+                                      a.click();
+                                    })
+                                    .catch((err) => {
+                                      alert(
+                                        "❌ Error downloading file: " +
+                                          err.message
+                                      );
+                                    });
+                                }}
+                              >
+                                Download
+                              </Button>
                             )
                           }
                         />
                       </ListItem>
                     ))}
                     {contents.length === 0 && (
-                      <Typography color={palette.textSecondary} align="center" py={2}>No resources found.</Typography>
+                      <Typography
+                        color={palette.textSecondary}
+                        align="center"
+                        py={2}
+                      >
+                        No resources found.
+                      </Typography>
                     )}
                   </List>
                 )}
@@ -254,16 +383,40 @@ export default function CourseDetailsPage() {
               {/* Students Tab */}
               <Collapse in={activeTab === "students"}>
                 {loadingCourse ? (
-                  <Box textAlign="center" mt={4}><CircularProgress  sx={{ color: "#38761d" }}/></Box>
+                  <Box textAlign="center" mt={4}>
+                    <CircularProgress sx={{ color: "#38761d" }} />
+                  </Box>
                 ) : students.length > 0 ? (
                   <Box sx={{ overflowX: "auto", mt: 2 }}>
-                    <Table sx={{ minWidth: 400, backgroundColor: "#ffffff", borderRadius: 2 }}>
+                    <Table
+                      sx={{
+                        minWidth: 400,
+                        backgroundColor: "#ffffff",
+                        borderRadius: 2,
+                      }}
+                    >
                       <TableHead>
                         <TableRow sx={{ backgroundColor: "#E6CCB2" }}>
-                          <TableCell sx={{ fontWeight: "bold", color: "#7F5539" }}>#</TableCell>
-                          <TableCell sx={{ fontWeight: "bold", color: "#7F5539" }}>Student ID</TableCell>
-                          <TableCell sx={{ fontWeight: "bold", color: "#7F5539" }}>Section</TableCell>
-                          <TableCell sx={{ fontWeight: "bold", color: "#7F5539" }}>Grade</TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", color: "#7F5539" }}
+                          >
+                            #
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", color: "#7F5539" }}
+                          >
+                            Student ID
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", color: "#7F5539" }}
+                          >
+                            Section
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", color: "#7F5539" }}
+                          >
+                            Grade
+                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -279,14 +432,18 @@ export default function CourseDetailsPage() {
                     </Table>
                   </Box>
                 ) : (
-                  <Typography color="#9e9e9e" align="center" py={2}>No students found.</Typography>
+                  <Typography color="#9e9e9e" align="center" py={2}>
+                    No students found.
+                  </Typography>
                 )}
               </Collapse>
 
               {/* Assignments Tab */}
               <Collapse in={activeTab === "assignments"}>
                 {loadingAssignments ? (
-                  <Box textAlign="center" mt={4}><CircularProgress  sx={{ color: "#38761d" }}/></Box>
+                  <Box textAlign="center" mt={4}>
+                    <CircularProgress sx={{ color: "#38761d" }} />
+                  </Box>
                 ) : (
                   <Box mt={2}>
                     <AssignmentList
@@ -298,7 +455,9 @@ export default function CourseDetailsPage() {
                       }}
                     />
                     <Button
-                      onClick={() => setShowAddAssignmentForm(!showAddAssignmentForm)}
+                      onClick={() =>
+                        setShowAddAssignmentForm(!showAddAssignmentForm)
+                      }
                       sx={{
                         mt: 2,
                         background: palette.primary,
@@ -337,7 +496,9 @@ export default function CourseDetailsPage() {
               <Collapse in={activeTab === "uploadContent"}>
                 <Box mt={2}>
                   {loadingCourse ? (
-                    <Box textAlign="center" mt={4}><CircularProgress sx={{ color: "#38761d" }}/></Box>
+                    <Box textAlign="center" mt={4}>
+                      <CircularProgress sx={{ color: "#38761d" }} />
+                    </Box>
                   ) : (
                     <AddContentForm courseId={id} />
                   )}

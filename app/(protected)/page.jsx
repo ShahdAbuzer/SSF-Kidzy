@@ -31,12 +31,14 @@ export default function Home() {
     if (/[@$!%*?&]/.test(password)) strength++;
 
     if (strength <= 1) return { label: "Weak", color: "#f44336" };
-    if (strength === 2 || strength === 3) return { label: "Medium", color: "#FFA726" };
+    if (strength === 2 || strength === 3)
+      return { label: "Medium", color: "#FFA726" };
     return { label: "Strong", color: "#66BB6A" };
   };
 
   const strength = getPasswordStrength(password);
-  const isPasswordMatch = password === confirmPassword && confirmPassword.length > 0;
+  const isPasswordMatch =
+    password === confirmPassword && confirmPassword.length > 0;
   const isValid = password.length >= 8 && isPasswordMatch;
 
   useEffect(() => {
@@ -65,14 +67,17 @@ export default function Home() {
     };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/students/${student?.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(updated),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/students/${student?.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(updated),
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to update password");
 
@@ -120,7 +125,12 @@ export default function Home() {
           textAlign: "center",
         }}
       >
-        <Image src="/images/kidzy-logo.png" width={150} height={150} alt="Kidzy Logo" />
+        <Image
+          src="/images/kidzy-logo.png"
+          width={150}
+          height={150}
+          alt="Kidzy Logo"
+        />
 
         {student && (
           <>
@@ -128,16 +138,19 @@ export default function Home() {
               variant="body1"
               sx={{ color: "#F5A623", fontWeight: "bold", mb: 2 }}
             >
-              Welcome back, {student.name}! 
-              
+              Welcome back, {student.name}!
             </Typography>
             <Typography
               variant="body1"
               sx={{ color: "#F5A623", fontWeight: "bold", mb: 2 }}
-            > 
+            >
               You have {student.points} points 💎
             </Typography>
-            <Box component="form" onSubmit={handleUpdate} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box
+              component="form"
+              onSubmit={handleUpdate}
+              sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
+            >
               <TextField
                 label="Email"
                 value={student.email}
@@ -166,7 +179,9 @@ export default function Home() {
                   },
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)}>
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
@@ -178,7 +193,11 @@ export default function Home() {
                 <Box>
                   <Typography
                     variant="caption"
-                    sx={{ color: strength.color, fontWeight: "bold", fontSize: "0.7rem" }}
+                    sx={{
+                      color: strength.color,
+                      fontWeight: "bold",
+                      fontSize: "0.7rem",
+                    }}
                   >
                     Password Strength: {strength.label}
                   </Typography>
@@ -194,11 +213,12 @@ export default function Home() {
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{
-                        width: strength.label === "Weak"
-                          ? "33%"
-                          : strength.label === "Medium"
-                          ? "66%"
-                          : "100%",
+                        width:
+                          strength.label === "Weak"
+                            ? "33%"
+                            : strength.label === "Medium"
+                            ? "66%"
+                            : "100%",
                       }}
                       transition={{ duration: 0.5 }}
                       style={{
@@ -239,8 +259,16 @@ export default function Home() {
                         },
                         endAdornment: (
                           <InputAdornment position="end">
-                            <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            <IconButton
+                              onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                              }
+                            >
+                              {showConfirmPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
                             </IconButton>
                           </InputAdornment>
                         ),
@@ -257,8 +285,16 @@ export default function Home() {
                 )}
               </AnimatePresence>
 
-              {error && <Typography color="error" variant="caption">{error}</Typography>}
-              {success && <Typography color="green" variant="caption">{success}</Typography>}
+              {error && (
+                <Typography color="error" variant="caption">
+                  {error}
+                </Typography>
+              )}
+              {success && (
+                <Typography color="green" variant="caption">
+                  {success}
+                </Typography>
+              )}
 
               <Button
                 type="submit"

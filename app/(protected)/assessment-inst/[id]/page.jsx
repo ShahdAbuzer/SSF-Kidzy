@@ -92,6 +92,7 @@ export default function AssessmentDetailsPage() {
   const totalPages = Math.ceil(filteredQuizzes.length / quizzesPerPage);
 
   return (
+    
     <Box
       sx={{
         p: 4,

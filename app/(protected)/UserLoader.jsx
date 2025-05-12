@@ -9,7 +9,7 @@ export default function UserLoader() {
     const endpoints = [
       { role: "STUDENT",    url: "http://localhost:8080/api/students/me" },
       { role: "INSTRUCTOR", url: "http://localhost:8080/api/instructors/current" },
-      { role: "ADMIN",      url: "http://localhost:8080/api/admin/current" },
+      { role: "ADMIN",      url: "http://localhost:8080/api/admins/current" },
     ];
 
     const loadCurrentUser = async () => {

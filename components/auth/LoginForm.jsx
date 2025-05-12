@@ -28,7 +28,7 @@ export default function LoginForm() {
   const ROLE_ENDPOINTS = [
     { role: "STUDENT",    url: `${API}/api/students/me`,         dashboard: "/student-dashboard" },
     { role: "INSTRUCTOR", url: `${API}/api/instructors/current`, dashboard: "/instructor-dashboard" },
-    { role: "ADMIN",      url: `${API}/api/admin/current`,       dashboard: "/admin-dashboard" },
+    { role: "ADMIN",      url: `${API}/api/admins/current`,       dashboard: "/admin-dashboard" },
   ];
 
   const handleSubmit = async (e) => {
@@ -63,6 +63,7 @@ export default function LoginForm() {
           Cookies.set("currentUserRole", ep.role,         { path: "/", sameSite: "lax" });
 
           sessionStorage.setItem("currentUser", JSON.stringify(data));
+          console.log("User data:", data);
 
           router.replace(ep.dashboard);
           return;

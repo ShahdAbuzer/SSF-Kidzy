@@ -17,6 +17,8 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -31,6 +33,7 @@ const palette = {
   progress: "#ea9127",
   textPrimary: "#1a223f",
   textSecondary: "#6b7a99",
+  greenLight: "#42b883",
 };
 
 export default function CreateQuizPage() {
@@ -38,10 +41,9 @@ export default function CreateQuizPage() {
   const router = useRouter();
 
   const [questionText, setQuestionText] = useState("");
-  const [correctAnswer, setCorrectAnswer] = useState("");
   const [difficulty, setDifficulty] = useState("EASY");
   const [points, setPoints] = useState(10);
-  const [options, setOptions] = useState([""]);
+  const [options, setOptions] = useState([{ text: "", isCorrect: false }]);
   const [questions, setQuestions] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
 
@@ -56,39 +58,39 @@ export default function CreateQuizPage() {
     setSnackOpen(true);
   };
 
-  const handleSnackClose = () => {
-    setSnackOpen(false);
-  };
+  const handleSnackClose = () => setSnackOpen(false);
 
   const resetForm = () => {
     setQuestionText("");
-    setCorrectAnswer("");
     setDifficulty("EASY");
     setPoints(10);
-    setOptions([""]);
+    setOptions([{ text: "", isCorrect: false }]);
     setEditingIndex(null);
   };
 
   const handleAddOption = () => {
-    setOptions([...options, ""]);
+    setOptions([...options, { text: "", isCorrect: false }]);
   };
 
   const handleAddOrUpdate = () => {
-    if (!questionText || !correctAnswer || options.some((opt) => !opt)) {
+    if (!questionText || options.some((opt) => !opt.text)) {
       showSnack("Please fill all fields.", "warning");
       return;
     }
 
-    const isDuplicate = questions.some(
-      (q) => q.questionText.trim().toLowerCase() === questionText.trim().toLowerCase()
-    );
-
-    if (isDuplicate && editingIndex === null) {
-      showSnack("This question already exists.", "warning");
+    const correctOptions = options.filter((opt) => opt.isCorrect);
+    if (correctOptions.length !== 1) {
+      showSnack("Please select exactly one correct answer.", "warning");
       return;
     }
 
-    const question = { questionText, correctAnswer, difficulty, points, options };
+    const question = {
+      questionText,
+      correctAnswer: correctOptions[0].text,
+      difficulty,
+      points,
+      options: options.map((opt) => opt.text),
+    };
 
     if (editingIndex !== null) {
       const updated = [...questions];
@@ -106,10 +108,14 @@ export default function CreateQuizPage() {
   const handleEdit = (index) => {
     const q = questions[index];
     setQuestionText(q.questionText);
-    setCorrectAnswer(q.correctAnswer);
     setDifficulty(q.difficulty);
     setPoints(q.points);
-    setOptions(q.options);
+    setOptions(
+      q.options.map((opt) => ({
+        text: opt,
+        isCorrect: opt === q.correctAnswer,
+      }))
+    );
     setEditingIndex(index);
   };
 
@@ -128,8 +134,8 @@ export default function CreateQuizPage() {
 
     try {
       setIsLoading(true);
-
       const questionIds = [];
+
       for (const q of questions) {
         const res = await fetch("http://localhost:8080/api/questions", {
           method: "POST",
@@ -149,7 +155,6 @@ export default function CreateQuizPage() {
         body: JSON.stringify({
           assessmentId: Number(id),
           questionIds,
-          pointForQuestion: 5,
         }),
       });
 
@@ -165,26 +170,21 @@ export default function CreateQuizPage() {
   };
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        bgcolor: "#f4f4f9",
-        minHeight: "100vh",
-        height: "100vh",
-        overflowY: "auto",
-      }}
-    >
+    <Box sx={{ p: 4, bgcolor: "#f4f4f9", height: "100vh", overflowY: "auto" }}>
       <Box maxWidth="800px" mx="auto">
-        {/* Title */}
         <Card sx={{ mb: 4, backgroundColor: palette.cardBg }}>
           <CardContent>
-            <Typography variant="h5" fontWeight="bold" color={palette.textPrimary} textAlign="center">
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              color={palette.textPrimary}
+              textAlign="center"
+            >
               Create Quiz - Assessment {id}
             </Typography>
           </CardContent>
         </Card>
 
-        {/* Form */}
         <Card sx={{ mb: 4, backgroundColor: palette.cardBg }}>
           <CardContent>
             <Stack spacing={2}>
@@ -194,21 +194,70 @@ export default function CreateQuizPage() {
                 onChange={(e) => setQuestionText(e.target.value)}
                 fullWidth
                 size="small"
+                sx={{
+                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: palette.accent,
+                    },
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: palette.accent,
+                    },
+                  "& .MuiInputLabel-root.Mui-focused": {
+                    color: palette.accent,
+                  },
+                }}
               />
+
               {options.map((opt, index) => (
-                <TextField
+                <FormControlLabel
                   key={index}
-                  label={`Option ${index + 1}`}
-                  value={opt}
-                  onChange={(e) => {
-                    const newOptions = [...options];
-                    newOptions[index] = e.target.value;
-                    setOptions(newOptions);
-                  }}
-                  fullWidth
-                  size="small"
+                  control={
+                    <Checkbox
+                      checked={opt.isCorrect}
+                      onChange={(e) => {
+                        const newOptions = options.map((o, i) => ({
+                          ...o,
+                          isCorrect: i === index ? e.target.checked : false,
+                        }));
+                        setOptions(newOptions);
+                      }}
+                      sx={{
+                        color: palette.greenLight,
+                        "&.Mui-checked": { color: palette.greenLight },
+                      }}
+                    />
+                  }
+                  label={
+                    <TextField
+                      label={`Option ${index + 1}`}
+                      value={opt.text}
+                      onChange={(e) => {
+                        const newOptions = [...options];
+                        newOptions[index].text = e.target.value;
+                        setOptions(newOptions);
+                      }}
+                      fullWidth
+                      size="small"
+                      sx={{
+                        "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                          {
+                            borderColor: palette.accent,
+                          },
+                        "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                          {
+                            borderColor: palette.accent,
+                          },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                          color: palette.accent,
+                        },
+                      }}
+                    />
+                  }
+                  sx={{ alignItems: "flex-start" }}
                 />
               ))}
+
               <Button
                 variant="outlined"
                 onClick={handleAddOption}
@@ -217,20 +266,25 @@ export default function CreateQuizPage() {
                 Add Option
               </Button>
 
-              <TextField
-                label="Correct Answer"
-                value={correctAnswer}
-                onChange={(e) => setCorrectAnswer(e.target.value)}
-                fullWidth
-                size="small"
-              />
               <Stack direction="row" spacing={2}>
                 <TextField
                   select
                   label="Difficulty"
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value)}
-                  sx={{ flex: 1 }}
+                  sx={{
+                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: palette.accent,
+                      },
+                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: palette.accent,
+                      },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: palette.accent,
+                    },
+                  }}
                   size="small"
                 >
                   <MenuItem value="EASY">Easy</MenuItem>
@@ -242,14 +296,31 @@ export default function CreateQuizPage() {
                   type="number"
                   value={points}
                   onChange={(e) => setPoints(Number(e.target.value))}
-                  sx={{ flex: 1 }}
+                  sx={{
+                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: palette.accent,
+                      },
+                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                      {
+                        borderColor: palette.accent,
+                      },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: palette.accent,
+                    },
+                  }}
                   size="small"
                 />
               </Stack>
+
               <Button
                 variant="contained"
                 onClick={handleAddOrUpdate}
-                sx={{ bgcolor: palette.primary, "&:hover": { bgcolor: palette.accent }, width: "fit-content" }}
+                sx={{
+                  bgcolor: palette.primary,
+                  "&:hover": { bgcolor: palette.accent },
+                  width: "fit-content",
+                }}
               >
                 {editingIndex !== null ? "Update" : "Add"}
               </Button>
@@ -257,14 +328,20 @@ export default function CreateQuizPage() {
           </CardContent>
         </Card>
 
-        {/* Questions List */}
         <Card sx={{ mb: 4, backgroundColor: palette.cardBg }}>
           <CardContent>
-            <Typography variant="h6" fontWeight="bold" color={palette.textPrimary} gutterBottom>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color={palette.textPrimary}
+              gutterBottom
+            >
               Questions
             </Typography>
             {questions.length === 0 ? (
-              <Typography color={palette.textSecondary}>No questions added.</Typography>
+              <Typography color={palette.textSecondary}>
+                No questions added.
+              </Typography>
             ) : (
               <List>
                 {questions.map((q, index) => (
@@ -294,7 +371,6 @@ export default function CreateQuizPage() {
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
         <Box textAlign="center">
           {isLoading ? (
             <CircularProgress sx={{ color: palette.primary }} />
@@ -303,7 +379,12 @@ export default function CreateQuizPage() {
               variant="contained"
               disabled={questions.length < 2}
               onClick={handleCreateQuiz}
-              sx={{ bgcolor: palette.primary, "&:hover": { bgcolor: palette.accent }, px: 4, py: 1.5 }}
+              sx={{
+                bgcolor: palette.primary,
+                "&:hover": { bgcolor: palette.accent },
+                px: 4,
+                py: 1.5,
+              }}
             >
               Create Quiz
             </Button>
@@ -311,9 +392,16 @@ export default function CreateQuizPage() {
         </Box>
       </Box>
 
-      {/* Snackbar */}
-      <Snackbar open={snackOpen} autoHideDuration={3000} onClose={handleSnackClose}>
-        <Alert onClose={handleSnackClose} severity={snackSeverity} sx={{ width: "100%" }}>
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={handleSnackClose}
+      >
+        <Alert
+          onClose={handleSnackClose}
+          severity={snackSeverity}
+          sx={{ width: "100%" }}
+        >
           {snackMessage}
         </Alert>
       </Snackbar>

@@ -319,7 +319,7 @@ export default function CoursesPage() {
                       variant="outlined"
                       disabled={currentPage === 1}
                       onClick={handlePrevPage}
-                      sx={{ borderRadius: 3 }}
+                      sx={{ borderRadius: 3 , color: palette.primary, borderColor: palette.primary }}
                     >
                       Previous
                     </Button>
@@ -330,7 +330,7 @@ export default function CoursesPage() {
                       variant="outlined"
                       disabled={currentPage === totalPages}
                       onClick={handleNextPage}
-                      sx={{ borderRadius: 3 }}
+                      sx={{ borderRadius: 3 , color: palette.primary, borderColor: palette.primary }}
                     >
                       Next
                     </Button>
