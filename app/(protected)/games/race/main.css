@@ -1,0 +1,529 @@
+/* Basic Reset & Body Styles */
+@import url('https://fonts.googleapis.com/css2?family=Beiruti:wght@200..900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Beiruti", serif;
+    font-optical-sizing: auto;
+  }
+  
+  body {
+    background: linear-gradient(135deg, #ffe2e2, #ffc6c6);
+    color: #333;
+    /* Ensure content scrolls above the fixed footer */
+    padding-bottom: 80px; 
+    overflow-x: hidden; /* Prevent horizontal scroll if balloons go offscreen */
+  }
+  
+  /* BOUNCY HEADING ANIMATION */
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-25px);
+    }
+    60% {
+      transform: translateY(-12px);
+    }
+  }
+  
+  /* FLOATING BALLOONS ANIMATION */
+  @keyframes floatBalloon {
+    0% {
+      bottom: -100px;
+      transform: translateX(0);
+      opacity: 0.1;
+    }
+    10% {
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateX(50px);
+      opacity: 1;
+    }
+    100% {
+      bottom: 100%;
+      transform: translateX(-50px);
+      opacity: 0;
+    }
+  }
+  
+  /* BALLOON CONTAINER */
+  .balloons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh; 
+    pointer-events: none; /* Let clicks pass through */
+    overflow: hidden; 
+  }
+  
+  /* SINGLE BALLOON */
+  .balloon {
+    position: absolute;
+    width: 40px;
+    height: 60px;
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #ff9efc 90%);
+    border-radius: 50% 50% 45% 55%;
+    bottom: -100px;
+    animation: floatBalloon 3s linear infinite;
+    z-index: 1;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Different colors for variety */
+  .balloon:nth-child(2) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #ffd05c 90%);
+    animation-delay: 2s;
+    left: 30%;
+  }
+  
+  .balloon:nth-child(3) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #b5fd9d 90%);
+    animation-delay: 4s;
+    left: 60%;
+  }
+  
+  .balloon:nth-child(4) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #93f9ff 90%);
+    animation-delay: 1s;
+    left: 80%;
+  }
+  
+  /* HERO SECTION */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: 20px;
+    position: relative; /* for layering balloons behind text if desired */
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+    color: #ff006e;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px #fff;
+    animation: bounce 2s infinite; /* Bouncy heading! */
+  }
+  
+  .hero p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    color: #333;
+  }
+  
+  .video-container {
+    position: relative;
+    width: 50%;
+    height: 400px; /* or any fixed height you prefer */
+    overflow: hidden; /* hides anything that goes beyond the container */
+    margin: 0 auto;
+    border: 5px solid #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
+  }
+  
+  .video-container iframe {
+    position: absolute;
+    top: -20%;  /* adjust to center the subject */
+    left: 0;
+    width: 100%; /* scale up the iframe so it fills beyond the container */
+    height: 140%; 
+    border: 0;
+  }
+  
+  /* FUNNY TEXT SECTION */
+  .funny-text {
+    margin: 2rem auto;
+    width: 80%;
+    max-width: 800px;
+    font-size: 1.1rem;
+    line-height: 3;
+    color: #444;
+    background: #fff6f6;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  /* FIXED FOOTER MENU */
+  .menu {
+    padding: 0.5rem;
+    background-color: #fff;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 -10px 25px 0 rgba(0, 0, 0, 0.075);
+    z-index: 999;
+  }
+  
+  .link {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 50px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transform-origin: center left;
+    transition: width 0.2s ease-in;
+    text-decoration: none;
+    color: inherit;
+    margin: 0 10px;
+  }
+  
+  .link::before {
+    position: absolute;
+    z-index: -1;
+    content: "";
+    display: block;
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    transform: translateX(100%);
+    transition: transform 0.2s ease-in;
+    transform-origin: center right;
+    background-color: #eee;
+  }
+  
+  .link:hover,
+  .link:focus {
+    outline: 0;
+    width: 130px;
+  }
+  
+  .link:hover::before,
+  .link:focus::before,
+  .link:hover .link-title,
+  .link:focus .link-title {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  
+  .link-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    flex-shrink: 0;
+    left: 18px;
+    position: absolute;
+  }
+  
+  .link-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .link-title {
+    transform: translateX(100%);
+    transition: transform 0.2s ease-in;
+    transform-origin: center right;
+    display: block;
+    text-align: center;
+    text-indent: 28px;
+    width: 100%;
+    opacity: 0;
+  }
+  /* From Uiverse.io by kamehame-ha */ 
+.cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .cards .red {
+    background-color: #f43f5e;
+  }
+  
+  .cards .blue {
+    background-color: #3b82f6;
+  }
+  
+  .cards .green {
+    background-color: #22c55e;
+  }
+  
+  .cards .card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    height: 100px;
+    width: 250px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: 400ms;
+  }
+  
+  .cards .card p.tip {
+    font-size: 1em;
+    font-weight: 700;
+  }
+  
+  .cards .card p.second-text {
+    font-size: .7em;
+  }
+  
+  .cards .card:hover {
+    transform: scale(1.1, 1.1);
+  }
+  
+  .cards:hover > .card:not(:hover) {
+    filter: blur(10px);
+    transform: scale(0.9, 0.9);
+  }
+  /* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* BODY & BACKGROUND */
+  body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #ffe2e2, #ffc6c6);
+    color: #333;
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: 80px; /* Reserve space for fixed footer */
+    overflow-x: hidden; /* Prevent horizontal scroll from balloons */
+  }
+  
+  /* HEADER */
+  .page-header {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  
+  .page-header h1 {
+    font-size: 2.5rem;
+    color: #ff006e;
+    text-shadow: 1px 1px #fff;
+    margin-bottom: 0.5rem;
+    animation: bounceHeader 2s infinite;
+  }
+  
+  @keyframes bounceHeader {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-20px);}
+    60% {transform: translateY(-10px);}
+  }
+  
+  /* CARDS CONTAINER */
+  .cards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    z-index: 2; /* Ensure cards appear above balloons */
+  }
+  
+  /* INDIVIDUAL CARD STYLES */
+  .card {
+    width: 180px;
+    height: 220px;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  /* COLOR VARIANTS */
+  .red {
+    background: #f44336;
+  }
+  .blue {
+    background: #2196f3;
+  }
+  .green {
+    background: #4caf50;
+  }
+  
+  /* CARD TEXT */
+  .tip {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .second-text {
+    font-size: 0.9rem;
+    font-weight: 300;
+  }
+  
+  /* FLOATING BALLOONS ANIMATION */
+  @keyframes floatBalloon {
+    0% {
+      bottom: -100px;
+      transform: translateX(0);
+      opacity: 0.1;
+    }
+    10% {
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateX(50px);
+      opacity: 1;
+    }
+    100% {
+      bottom: 100%;
+      transform: translateX(-50px);
+      opacity: 0;
+    }
+  }
+  
+  /* BALLOONS CONTAINER */
+  .balloons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  /* SINGLE BALLOON */
+  .balloon {
+    position: absolute;
+    width: 40px;
+    height: 60px;
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #ff9efc 90%);
+    border-radius: 50% 50% 45% 55%;
+    bottom: -100px;
+    animation: floatBalloon 8s linear infinite;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .balloon:nth-child(2) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #ffd05c 90%);
+    animation-delay: 2s;
+    left: 30%;
+  }
+  .balloon:nth-child(3) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #b5fd9d 90%);
+    animation-delay: 4s;
+    left: 60%;
+  }
+  .balloon:nth-child(4) {
+    background: radial-gradient(circle at 30% 30%, #fff 25%, #93f9ff 90%);
+    animation-delay: 1s;
+    left: 80%;
+  }
+  
+  /* FIXED FOOTER MENU */
+  .menu {
+    padding: 0.5rem;
+    background-color: #fff;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 -10px 25px 0 rgba(0, 0, 0, 0.075);
+    z-index: 999;
+  }
+  
+  .link {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 50px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    transform-origin: center left;
+    transition: width 0.2s ease-in;
+    text-decoration: none;
+    color: inherit;
+    margin: 0 10px;
+  }
+  
+  .link::before {
+    position: absolute;
+    z-index: -1;
+    content: "";
+    display: block;
+    border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    transform: translateX(100%);
+    transition: transform 0.2s ease-in;
+    transform-origin: center right;
+    background-color: #eee;
+  }
+  
+  .link:hover,
+  .link:focus {
+    outline: 0;
+    width: 130px;
+  }
+  
+  .link:hover::before,
+  .link:focus::before,
+  .link:hover .link-title,
+  .link:focus .link-title {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  
+  .link-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    flex-shrink: 0;
+    left: 18px;
+    position: absolute;
+  }
+  
+  .link-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .link-title {
+    transform: translateX(100%);
+    transition: transform 0.2s ease-in;
+    transform-origin: center right;
+    display: block;
+    text-align: center;
+    text-indent: 28px;
+    width: 100%;
+    opacity: 0;
+  }
+  

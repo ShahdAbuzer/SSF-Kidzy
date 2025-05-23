@@ -61,6 +61,8 @@ export default function LoginForm() {
           Cookies.set("currentUserId",   String(data.id), { path: "/", sameSite: "lax" });
           Cookies.set("currentUserName", data.name ?? "", { path: "/", sameSite: "lax" });
           Cookies.set("currentUserRole", ep.role,         { path: "/", sameSite: "lax" });
+          Cookies.set("currentUserPoints", data.points ?? 0, { path: "/", sameSite: "lax" });
+          Cookies.set("currentUserLevel", data.level ?? "", { path: "/", sameSite: "lax" });
 
           sessionStorage.setItem("currentUser", JSON.stringify(data));
           console.log("User data:", data);

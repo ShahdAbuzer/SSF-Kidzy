@@ -128,7 +128,7 @@ export default function AssignmentList({ loading, assignments, onEdit }) {
               </Tooltip>
               <Tooltip title="View Submissions">
                 <IconButton
-                  onClick={() => router.push(`/assignment-inst/${a.id}`)}
+onClick={() => router.push(`/instructor-dashboard/course/courses/assignment-inst/${a.id}`)}
                   sx={{
                     bgcolor: "#fff",
                     color: palette.primary,

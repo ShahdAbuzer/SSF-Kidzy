@@ -88,12 +88,15 @@ export default function CourseAssessments({ courseId }) {
 
   const handleSaveEdit = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/assessments/${selectedAssessment.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(selectedAssessment),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/assessments/${selectedAssessment.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(selectedAssessment),
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to update assessment");
 
@@ -139,8 +142,6 @@ export default function CourseAssessments({ courseId }) {
 
   return (
     <Box mt={3}>
-      
-
       {loading ? (
         <CircularProgress />
       ) : error ? (
@@ -167,7 +168,11 @@ export default function CourseAssessments({ courseId }) {
                   </Avatar>
 
                   <Box flex={1}>
-                    <Typography fontWeight={700} fontSize={18} color={palette.textPrimary}>
+                    <Typography
+                      fontWeight={700}
+                      fontSize={18}
+                      color={palette.textPrimary}
+                    >
                       {a.title}
                     </Typography>
                     <Typography color={palette.textSecondary} fontSize={14}>
@@ -209,7 +214,11 @@ export default function CourseAssessments({ courseId }) {
 
                 <Tooltip title="View Submissions">
                   <IconButton
-                    onClick={() => router.push(`/assessment-inst/${a.id}`)}
+                    onClick={() =>
+                      router.push(
+                        `/instructor-dashboard/course/courses/assessment-inst/${a.id}`
+                      )
+                    }
                     sx={{
                       bgcolor: "#fff",
                       color: palette.primary,
@@ -229,13 +238,18 @@ export default function CourseAssessments({ courseId }) {
       {/* ✏️ Edit Modal */}
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
         <Box sx={modalStyle}>
-          <Typography variant="h6" mb={2}>Edit Assessment</Typography>
+          <Typography variant="h6" mb={2}>
+            Edit Assessment
+          </Typography>
           <TextField
             label="Title"
             fullWidth
             value={selectedAssessment?.title || ""}
             onChange={(e) =>
-              setSelectedAssessment((prev) => ({ ...prev, title: e.target.value }))
+              setSelectedAssessment((prev) => ({
+                ...prev,
+                title: e.target.value,
+              }))
             }
             margin="normal"
           />
@@ -246,12 +260,19 @@ export default function CourseAssessments({ courseId }) {
             rows={3}
             value={selectedAssessment?.description || ""}
             onChange={(e) =>
-              setSelectedAssessment((prev) => ({ ...prev, description: e.target.value }))
+              setSelectedAssessment((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
             }
             margin="normal"
           />
           <Box mt={2} display="flex" justifyContent="space-between">
-            <Button variant="outlined" color="error" onClick={() => setEditModalOpen(false)}>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setEditModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="contained" onClick={handleSaveEdit}>
@@ -264,7 +285,9 @@ export default function CourseAssessments({ courseId }) {
       {/* ➕ Add Modal */}
       <Modal open={addModalOpen} onClose={() => setAddModalOpen(false)}>
         <Box sx={modalStyle}>
-          <Typography variant="h6" mb={2}>Add Assessment</Typography>
+          <Typography variant="h6" mb={2}>
+            Add Assessment
+          </Typography>
           <TextField
             label="Title"
             fullWidth
@@ -286,7 +309,11 @@ export default function CourseAssessments({ courseId }) {
             margin="normal"
           />
           <Box mt={2} display="flex" justifyContent="space-between">
-            <Button variant="outlined" color="error" onClick={() => setAddModalOpen(false)}>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setAddModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="contained" onClick={handleAddAssessment}>
@@ -294,7 +321,10 @@ export default function CourseAssessments({ courseId }) {
             </Button>
           </Box>
           {addMessage && (
-            <Typography mt={2} color={addMessage.startsWith("❌") ? "error" : "green"}>
+            <Typography
+              mt={2}
+              color={addMessage.startsWith("❌") ? "error" : "green"}
+            >
               {addMessage}
             </Typography>
           )}

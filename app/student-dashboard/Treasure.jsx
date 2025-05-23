@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -11,8 +10,8 @@ export default function Treasure() {
   const handleClick = () => {
     setIsOpen(true);
     setTimeout(() => {
-      router.push("/buy-games-and-themes");
-    }, 500); // نص ثانية عشان يشوف صورة الصندوق المفتوح قبل يروح
+      router.push("student-dashboard/buy-games-and-themes");
+    }, 180);
   };
 
   return (
@@ -23,8 +22,8 @@ export default function Treasure() {
       height={100}
       onClick={handleClick}
       style={{
-        position: "fixed",
-        bottom: "160px",
+        position: "absolute",
+        bottom: "360px",
         left: "970px",
         zIndex: 3,
         cursor: "pointer",

@@ -12,7 +12,7 @@ export default function Rocket() {
     setLaunched(true);
 
     setTimeout(() => {
-      router.push("/current-games");
+      router.push("student-dashboard/current-games");
     }, 200); // نعطي وقت يكمل الأنيميشن
   };
 

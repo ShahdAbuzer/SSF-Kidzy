@@ -123,7 +123,7 @@ export default function SignUpPage() {
         setSuccess(data.message || "Signup successful!");
         setTimeout(() => (window.location.href = "/login"), 1500);
       }
-      
+
     } catch {
       setFormErrors({ general: "Something went wrong." });
     }
@@ -151,12 +151,12 @@ export default function SignUpPage() {
       animate={{ opacity: 1 }}
       style={{
         backgroundColor: "#FFFEF4",
-        height: "100vh",
-        overflow: "auto",
+        minHeight: "100vh",
+        padding: "2vh 4vw",
         backgroundImage: "url('/images/signup-rainbow.png')",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "right bottom",
-        backgroundSize: "60%",
+        backgroundSize: "contain",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -165,20 +165,31 @@ export default function SignUpPage() {
       <Paper
         elevation={0}
         sx={{
-          width: 360,
-          maxWidth: "90vw",
-          p: 3,
+          width: "100%",
+          maxWidth: {
+            xs: 340,
+            sm: 400,
+            md: 460,
+          },
+          p: {
+            xs: 2,
+            sm: 3,
+            md: 4,
+          },
           borderRadius: 3,
           backgroundColor: "#FFFEF4",
           textAlign: "center",
         }}
       >
-        <Image
-          src="/images/kidzy-logo.png"
-          width={150}
-          height={150}
-          alt="Kidzy Logo"
-        />
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <Image
+            src="/images/kidzy-logo.png"
+            alt="Kidzy Logo"
+            width={120}
+            height={120}
+            style={{ maxWidth: "100%", height: "auto" }}
+          />
+        </Box>
 
         <Typography
           variant="body1"
@@ -397,7 +408,6 @@ export default function SignUpPage() {
           </Button>
         </Box>
 
-        {/* زر Google */}
         <Button
           onClick={() => {
             window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/oauth2/authorization/google`;

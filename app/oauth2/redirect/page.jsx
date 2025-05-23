@@ -16,7 +16,7 @@ export default function OAuthRedirectPage() {
         });
 
         if (res.ok) {
-          router.replace("/");
+          router.replace("/student-dashboard");
         } else {
           router.replace("/login");
         }

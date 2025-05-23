@@ -20,7 +20,7 @@ export default function Rock() {
  
 
   const handleClick = () => {
-    router.push("/progress");
+    router.push("student-dashboard/progress");
   };
 
   const progress = student ? Math.min((student.points / 10000) * 100, 100) : 0;
@@ -31,7 +31,7 @@ export default function Rock() {
       sx={{
         position: "fixed",
         bottom: "-63vh",
-        left: "47%",
+        left: "49%",
         transform: "translateX(-50%)",
         zIndex: 4,
         cursor: "pointer",

@@ -8,8 +8,8 @@ export default function Sun() {
       width={250}
       height={250}
       style={{
-        position: "fixed",
-        top: 3,
+        position: "absolute",
+        top: "3px",
         left: "1000px",
         zIndex: 4,
       }}

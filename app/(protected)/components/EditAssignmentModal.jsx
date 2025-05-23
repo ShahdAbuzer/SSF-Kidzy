@@ -6,22 +6,15 @@ import {
   Typography,
   TextField,
   Button,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 500,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: 2,
-  p: 4,
-};
-
 export default function EditAssignmentModal({ open, onClose, assignment, onSave }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -31,7 +24,7 @@ export default function EditAssignmentModal({ open, onClose, assignment, onSave 
     if (assignment) {
       setTitle(assignment.title);
       setDescription(assignment.description);
-      setDueDate(assignment.dueDate?.slice(0, 16)); // format datetime-local
+      setDueDate(assignment.dueDate?.slice(0, 16));
       setMaxPoints(assignment.maxPoints);
     }
   }, [assignment]);
@@ -58,7 +51,7 @@ export default function EditAssignmentModal({ open, onClose, assignment, onSave 
         throw new Error(errText);
       }
 
-      onSave(); // notify parent
+      onSave();
       onClose();
     } catch (err) {
       alert("❌ Failed to update assignment: " + err.message);
@@ -67,8 +60,22 @@ export default function EditAssignmentModal({ open, onClose, assignment, onSave 
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={style}>
-        <Typography variant="h6" mb={2}>Edit Assignment</Typography>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: isMobile ? "90%" : 500,
+          bgcolor: "background.paper",
+          boxShadow: 24,
+          borderRadius: 2,
+          p: 3,
+        }}
+      >
+        <Typography variant="h6" mb={2} fontWeight={700}>
+          Edit Assignment
+        </Typography>
 
         <TextField
           label="Title"
@@ -104,11 +111,11 @@ export default function EditAssignmentModal({ open, onClose, assignment, onSave 
           margin="normal"
         />
 
-        <Box mt={2} display="flex" justifyContent="space-between">
-          <Button variant="outlined" color="error" onClick={onClose}>
+        <Box mt={3} display="flex" justifyContent="space-between" flexDirection={isMobile ? "column" : "row"} gap={2}>
+          <Button variant="outlined" color="error" onClick={onClose} fullWidth={isMobile}>
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSave}>
+          <Button variant="contained" onClick={handleSave} fullWidth={isMobile}>
             Save
           </Button>
         </Box>

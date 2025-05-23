@@ -9,6 +9,8 @@ import {
   Snackbar,
   Alert,
   Typography,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 
 const palette = {
@@ -18,6 +20,9 @@ const palette = {
 };
 
 export default function AddAssessmentForm({ courseId, onSuccess, onError }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState({ title: "", description: "" });
@@ -40,16 +45,19 @@ export default function AddAssessmentForm({ courseId, onSuccess, onError }) {
     if (!validate()) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/assessments?courseId=${courseId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          title,
-          description,
-          courseId,
-        }),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/assessments?courseId=${courseId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            title,
+            description,
+            courseId,
+          }),
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to add assessment");
 
@@ -72,8 +80,22 @@ export default function AddAssessmentForm({ courseId, onSuccess, onError }) {
   };
 
   return (
-    <Box sx={{ mt: 2, p: 3, background: palette.background, borderRadius: 3 }}>
-      <Typography fontWeight={700} mb={2} fontSize={18}>
+    <Box
+      sx={{
+        mt: 2,
+        p: { xs: 2, sm: 3 },
+        background: palette.background,
+        borderRadius: 3,
+        maxWidth: "100%",
+      }}
+    >
+      <Typography
+        fontWeight={700}
+        mb={2}
+        fontSize={{ xs: 16, sm: 18 }}
+        color="primary"
+      >
+        Add New Assessment
       </Typography>
 
       <Stack spacing={2}>
@@ -96,19 +118,22 @@ export default function AddAssessmentForm({ courseId, onSuccess, onError }) {
           rows={3}
         />
 
-        <Button
-          variant="contained"
-          sx={{
-            mt: 1,
-            background: palette.primary,
-            "&:hover": { background: palette.accent },
-            borderRadius: 3,
-            fontWeight: 700,
-          }}
-          onClick={handleSubmit}
-        >
-          Add Assessment
-        </Button>
+        <Box display="flex" justifyContent={isMobile ? "center" : "flex-end"}>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            sx={{
+              mt: 1,
+              background: palette.primary,
+              "&:hover": { background: palette.accent },
+              borderRadius: 3,
+              fontWeight: 700,
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
+            Add Assessment
+          </Button>
+        </Box>
       </Stack>
 
       <Snackbar

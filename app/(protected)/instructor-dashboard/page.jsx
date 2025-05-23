@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "../components/Navbar"; // ✅ كومبوننت الناف
+import Navbar from "../components/Navbar";
 import {
   Box,
   Typography,
@@ -16,59 +16,52 @@ import {
   Button,
   Fade,
   Avatar,
-  useMediaQuery,
   LinearProgress,
   Zoom,
   Tooltip,
   IconButton,
+  Modal,
 } from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import GroupIcon from "@mui/icons-material/Group";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import MenuIcon from "@mui/icons-material/Menu";
 import Cookies from "js-cookie";
 
 export default function InstructorDashboard() {
   const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [openSidebar, setOpenSidebar] = useState(false);
   const coursesRef = useRef(null);
-  const isMobile = useMediaQuery("(max-width:900px)", { noSsr: true });
 
   useEffect(() => {
-    setMounted(true);
-
-    if (typeof window !== "undefined") {
-      try {
-        const storedCourses = Cookies.get("myCourses");
-        if (storedCourses) {
-          setCourses(JSON.parse(storedCourses));
-        }
-      } catch (err) {
-        console.error("❌ Failed to load courses from cookies:", err);
-      }
-    }
-
-    const fetchAssignments = async () => {
-      try {
-        const res = await fetch("http://localhost:8080/api/assignments", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-        const data = await res.json();
-        const assignmentList = data?._embedded?.assignmentDTOList || [];
-        setAssignments(assignmentList);
-      } catch (err) {
-        console.error("Error fetching assignments:", err);
-      }
-    };
-
-    fetchAssignments();
+    const mediaQuery = window.matchMedia("(max-width:900px)");
+    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+    updateIsMobile();
+    mediaQuery.addEventListener("change", updateIsMobile);
+    return () => mediaQuery.removeEventListener("change", updateIsMobile);
   }, []);
 
-  if (!mounted) return null;
+  useEffect(() => {
+    try {
+      const storedCourses = Cookies.get("myCourses");
+      if (storedCourses) setCourses(JSON.parse(storedCourses));
+    } catch (err) {
+      console.error("❌ Failed to load courses from cookies:", err);
+    }
+
+    fetch("http://localhost:8080/api/assignments", { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        const list = data?._embedded?.assignmentDTOList || [];
+        setAssignments(list);
+      })
+      .catch(console.error);
+  }, []);
 
   const palette = {
     primary: "#38761d",
@@ -86,6 +79,7 @@ export default function InstructorDashboard() {
       coursesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+
   const handleLogout = async () => {
     await fetch("http://localhost:8080/auth/logout", {
       method: "POST",
@@ -93,6 +87,90 @@ export default function InstructorDashboard() {
     });
     window.location.href = "/login";
   };
+
+  const AssignmentList = (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 5,
+        background: palette.glass,
+        boxShadow: palette.shadow,
+        border: `1.5px solid ${palette.border}`,
+        backdropFilter: "blur(12px)",
+        mb: 3,
+        maxHeight: "70vh",
+        overflowY: "auto",
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ fontWeight: 700, color: palette.primary, mb: 2, letterSpacing: 1 }}
+      >
+        <AssignmentIcon sx={{ mr: 1, verticalAlign: "middle", color: palette.accent }} />
+        Assignments
+      </Typography>
+      <List dense>
+        {assignments.length === 0 ? (
+          <Typography fontSize={14} color={palette.textSecondary}>
+            No assignments found.
+          </Typography>
+        ) : (
+          assignments.map((a, idx) => (
+            <Fade in key={a.id}>
+              <Box>
+                <ListItem
+                  sx={{ alignItems: "flex-start", gap: 2, px: 0, py: 1 }}
+                  disablePadding
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: palette.primary,
+                      color: "#fff",
+                      width: 32,
+                      height: 32,
+                      fontSize: 16,
+                      mt: 0.5,
+                    }}
+                  >
+                    {a.title?.[0] || "A"}
+                  </Avatar>
+                  <ListItemText
+                    primary={
+                      <Typography fontSize={15} fontWeight={700} color={palette.textPrimary}>
+                        {a.title}
+                      </Typography>
+                    }
+                    secondary={
+                      <Box>
+                        <Typography fontSize={13} color={palette.textSecondary}>
+                          Due: {a.dueDate}
+                        </Typography>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min(100, 10 + idx * 12)}
+                          sx={{
+                            height: 5,
+                            borderRadius: 2,
+                            mt: 0.5,
+                            background: "#e3e8f0",
+                            "& .MuiLinearProgress-bar": {
+                              background: palette.accent,
+                            },
+                          }}
+                        />
+                      </Box>
+                    }
+                  />
+                </ListItem>
+                {idx < assignments.length - 1 && <Divider light sx={{ my: 1 }} />}
+              </Box>
+            </Fade>
+          ))
+        )}
+      </List>
+    </Paper>
+  );
 
   return (
     <Box
@@ -107,61 +185,17 @@ export default function InstructorDashboard() {
       <Navbar />
 
       <Grid container>
-        {/* Sidebar */}
-        <Grid item xs={12} md={3} sx={{ p: { xs: 2, md: 4 } }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 5,
-              background: palette.glass,
-              boxShadow: palette.shadow,
-              border: `1.5px solid ${palette.border}`,
-              backdropFilter: "blur(12px)",
-              mb: 3,
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700, color: palette.primary, mb: 2, letterSpacing: 1 }}>
-              <AssignmentIcon sx={{ mr: 1, verticalAlign: "middle", color: palette.accent }} />
-              Assignments
-            </Typography>
-            <List dense>
-              {assignments.length === 0 ? (
-                <Typography fontSize={14} color={palette.textSecondary}>No assignments found.</Typography>
-              ) : (
-                assignments.map((a, idx) => (
-                  <Fade in key={a.id}>
-                    <Box>
-                      <ListItem sx={{ alignItems: "flex-start", gap: 2, px: 0, py: 1 }} disablePadding>
-                        <Avatar sx={{ bgcolor: palette.primary, color: "#fff", width: 32, height: 32, fontSize: 16, mt: 0.5 }}>{a.title?.[0] || "A"}</Avatar>
-                        <ListItemText
-                          primary={<Typography fontSize={15} fontWeight={700} color={palette.textPrimary}>{a.title}</Typography>}
-                          secondary={
-                            <Box>
-                              <Typography fontSize={13} color={palette.textSecondary}>Due: {a.dueDate}</Typography>
-                              <LinearProgress
-                                variant="determinate"
-                                value={Math.min(100, 10 + idx * 12)}
-                                sx={{
-                                  height: 5,
-                                  borderRadius: 2,
-                                  mt: 0.5,
-                                  background: "#e3e8f0",
-                                  "& .MuiLinearProgress-bar": { background: palette.accent },
-                                }}
-                              />
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                      {idx < assignments.length - 1 && <Divider light sx={{ my: 1 }} />}
-                    </Box>
-                  </Fade>
-                ))
-              )}
-            </List>
-          </Paper>
-
+        {/* Sidebar - desktop */}
+        <Grid
+          item
+          xs={12}
+          md={3}
+          sx={{
+            display: { xs: "none", md: "block" },
+            p: 4,
+          }}
+        >
+          {AssignmentList}
           <Button
             onClick={handleLogout}
             variant="outlined"
@@ -202,9 +236,12 @@ export default function InstructorDashboard() {
                   boxShadow: palette.shadow,
                   cursor: "pointer",
                   transition: "0.3s",
-                  "&:hover": { boxShadow: "0 16px 32px 0 rgba(205, 154, 110, 0.2)", borderColor: palette.accent },
+                  "&:hover": {
+                    boxShadow: "0 16px 32px 0 rgba(205, 154, 110, 0.2)",
+                    borderColor: palette.accent,
+                  },
                 }}
-                onClick={() => router.push("/course")}
+                onClick={() => router.push("/instructor-dashboard/course")}
               >
                 <Box display="flex" alignItems="center" gap={4}>
                   <SchoolIcon fontSize="large" sx={{ color: palette.primary, fontSize: 48 }} />
@@ -231,9 +268,12 @@ export default function InstructorDashboard() {
                   boxShadow: palette.shadow,
                   cursor: "pointer",
                   transition: "0.2s",
-                  "&:hover": { boxShadow: "0 12px 32px 0 rgba(229, 184, 20, 0.15)", borderColor: palette.accent },
+                  "&:hover": {
+                    boxShadow: "0 12px 32px 0 rgba(229, 184, 20, 0.15)",
+                    borderColor: palette.accent,
+                  },
                 }}
-                onClick={() => router.push("/enroll")}
+                onClick={() => router.push("/instructor-dashboard/enroll")}
               >
                 <Box display="flex" alignItems="center" gap={3}>
                   <GroupIcon fontSize="large" sx={{ color: palette.accent, fontSize: 40 }} />
@@ -250,8 +290,15 @@ export default function InstructorDashboard() {
             </Grid>
           </Grid>
 
+          {/* Recent Courses */}
           <Box mt={8} ref={coursesRef}>
-            <Typography variant="h4" fontWeight={900} gutterBottom color={palette.primary} sx={{ letterSpacing: 1 }}>
+            <Typography
+              variant="h4"
+              fontWeight={900}
+              gutterBottom
+              color={palette.primary}
+              sx={{ letterSpacing: 1 }}
+            >
               Recent Courses
             </Typography>
             <Paper
@@ -266,19 +313,39 @@ export default function InstructorDashboard() {
               }}
             >
               {courses.length === 0 ? (
-                <Typography fontSize={17} color={palette.textSecondary}>No courses found in cookies.</Typography>
+                <Typography fontSize={17} color={palette.textSecondary}>
+                  No courses found in cookies.
+                </Typography>
               ) : (
                 <List dense>
                   {courses.map((course, idx) => (
                     <Fade in key={course.courseId}>
                       <Box>
                         <ListItem sx={{ alignItems: "flex-start", gap: 2, px: 0, py: 2 }}>
-                          <Avatar sx={{ bgcolor: palette.accent, color: "#fff", width: 36, height: 36, fontSize: 18, mt: 0.5, boxShadow: palette.shadow }}>
+                          <Avatar
+                            sx={{
+                              bgcolor: palette.accent,
+                              color: "#fff",
+                              width: 36,
+                              height: 36,
+                              fontSize: 18,
+                              mt: 0.5,
+                              boxShadow: palette.shadow,
+                            }}
+                          >
                             {course.title?.[0] || "C"}
                           </Avatar>
                           <ListItemText
-                            primary={<Typography fontSize={18} fontWeight={800} color={palette.textPrimary}>{course.title}</Typography>}
-                            secondary={<Typography fontSize={15} color={palette.textSecondary}>{`ID: ${course.courseId} | ${course.description}`}</Typography>}
+                            primary={
+                              <Typography fontSize={18} fontWeight={800} color={palette.textPrimary}>
+                                {course.title}
+                              </Typography>
+                            }
+                            secondary={
+                              <Typography fontSize={15} color={palette.textSecondary}>
+                                {`ID: ${course.courseId} | ${course.description}`}
+                              </Typography>
+                            }
                           />
                         </ListItem>
                         {idx < courses.length - 1 && <Divider light sx={{ my: 1 }} />}
@@ -292,6 +359,7 @@ export default function InstructorDashboard() {
         </Grid>
       </Grid>
 
+      {/* Jump to Recent Courses Button */}
       <Zoom in>
         <Tooltip title="Jump to Recent Courses" placement="left">
           <IconButton
@@ -320,6 +388,53 @@ export default function InstructorDashboard() {
           </IconButton>
         </Tooltip>
       </Zoom>
+
+      {/* 📱 Sidebar Toggle Button - Mobile Only */}
+      {isMobile && (
+        <>
+          <IconButton
+            onClick={() => setOpenSidebar(true)}
+            sx={{
+              position:"fixed",
+              bottom: 800,
+              left: 24,
+              zIndex: 1200,
+              bgcolor: "#fff",
+              border: "2px solid #38761d",
+              boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
+            }}
+          >
+            <MenuIcon sx={{ color: "#38761d" }} />
+          </IconButton>
+
+          <Modal open={openSidebar} onClose={() => setOpenSidebar(false)}>
+            <Box
+              sx={{
+                width: "90%",
+                maxWidth: 350,
+                bgcolor: "#fff",
+                borderRadius: 4,
+                p: 3,
+                m: "auto",
+                mt: 10,
+                boxShadow: 24,
+                outline: "none",
+              }}
+            >
+              {AssignmentList}
+              <Button
+                onClick={handleLogout}
+                variant="contained"
+                fullWidth
+                startIcon={<LogoutIcon />}
+                sx={{ mt: 2, textTransform: "none", fontWeight: 600, borderRadius: 3 }}
+              >
+                Logout
+              </Button>
+            </Box>
+          </Modal>
+        </>
+      )}
     </Box>
   );
 }
